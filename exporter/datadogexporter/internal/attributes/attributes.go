@@ -101,17 +101,26 @@ func TagsFromAttributes(attrs pdata.AttributeMap) []string {
 		// System attributes
 		case conventions.AttributeOSType:
 			systemAttributes.OSType = value.StringVal()
+		default:
+			var mapped bool
+
+			// conventions mapping
+			if datadogKey, found := conventionsMapping[key]; found && value.StringVal() != "" {
+				mapped = true
+				tags = append(tags, fmt.Sprintf("%s:%s", datadogKey, value.StringVal()))
+			}
+
+			// Kubernetes labels mapping
+			if datadogKey, found := kubernetesMapping[key]; found && value.StringVal() != "" {
+				mapped = true
+				tags = append(tags, fmt.Sprintf("%s:%s", datadogKey, value.StringVal()))
+			}
+
+			if !mapped && value.StringVal() != "" {
+				tags = append(tags, fmt.Sprintf("%s:%s", key, value.StringVal()))
+			}
 		}
 
-		// conventions mapping
-		if datadogKey, found := conventionsMapping[key]; found && value.StringVal() != "" {
-			tags = append(tags, fmt.Sprintf("%s:%s", datadogKey, value.StringVal()))
-		}
-
-		// Kubernetes labels mapping
-		if datadogKey, found := kubernetesMapping[key]; found && value.StringVal() != "" {
-			tags = append(tags, fmt.Sprintf("%s:%s", datadogKey, value.StringVal()))
-		}
 		return true
 	})
 

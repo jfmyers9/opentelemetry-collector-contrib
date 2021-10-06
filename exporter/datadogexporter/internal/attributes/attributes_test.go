@@ -52,3 +52,22 @@ func TestTagsFromAttributesEmpty(t *testing.T) {
 
 	assert.Equal(t, []string{}, TagsFromAttributes(attrs))
 }
+
+func TestTagsThatAreNotConventional(t *testing.T) {
+	attributeMap := map[string]pdata.AttributeValue{
+		conventions.AttributeProcessExecutableName: pdata.NewAttributeValueString("otelcol"),
+		conventions.AttributeOSType:                pdata.NewAttributeValueString("LINUX"),
+		conventions.AttributeK8SDaemonSetName:      pdata.NewAttributeValueString("daemon_set_name"),
+		"tags.datadoghq.com/service":               pdata.NewAttributeValueString("service_name"),
+		"other-tag":                                pdata.NewAttributeValueString("other-value"),
+	}
+	attrs := pdata.NewAttributeMapFromMap(attributeMap)
+
+	assert.ElementsMatch(t, []string{
+		fmt.Sprintf("%s:%s", conventions.AttributeProcessExecutableName, "otelcol"),
+		fmt.Sprintf("%s:%s", conventions.AttributeOSType, "LINUX"),
+		fmt.Sprintf("%s:%s", "kube_daemon_set", "daemon_set_name"),
+		fmt.Sprintf("%s:%s", "service", "service_name"),
+		fmt.Sprintf("%s:%s", "other-tag", "other-value"),
+	}, TagsFromAttributes(attrs))
+}
