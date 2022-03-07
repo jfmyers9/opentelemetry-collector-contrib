@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	go.uber.org/multierr v1.7.0
+	go.uber.org/multierr v1.8.0
 	google.golang.org/genproto v0.0.0-20210909211513-a8c4777a87af // indirect
 )
 
